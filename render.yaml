@@ -1,0 +1,53 @@
+# FREE Render web service. Attach external persistent PostgreSQL via DATABASE_URL.
+# Without DATABASE_URL, SQLite on Render's ephemeral filesystem is NOT persistent.
+services:
+  - type: web
+    name: jefrocrypto-threads-engine
+    runtime: docker
+    plan: free
+    healthCheckPath: /healthz
+    envVars:
+      - key: ADMIN_USERNAME
+        value: admin
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: openrouter/free
+      - key: AI_PROVIDER_ORDER
+        value: openrouter,gemini
+      - key: DATABASE_URL
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: THREADS_ACCESS_TOKEN
+        sync: false
+      - key: THREADS_APP_ID
+        sync: false
+      - key: THREADS_APP_SECRET
+        sync: false
+      - key: THREADS_REDIRECT_URI
+        sync: false
+      - key: THREADS_OAUTH_STATE
+        sync: false
+      - key: THREADS_REQUESTED_SCOPES
+        value: threads_basic,threads_content_publish
+      - key: THREADS_OWN_USERNAME
+        sync: false
+      - key: THREADS_KEYWORD_SEARCH_ENABLED
+        value: "false"
+      - key: THREADS_PROFILE_DISCOVERY_ENABLED
+        value: "false"
+      - key: BASE_REFERRAL_URL
+        value: https://fomo.family/r/jefrocrypto
+      - key: DEFAULT_POST_LANGUAGE
+        value: ru
+      - key: RESEARCH_SCHEDULER_ENABLED
+        value: "false"
+      - key: AUTO_PUBLISH_ENABLED
+        value: "false"

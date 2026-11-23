@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /meta
+Allow: /privacy
+Allow: /terms
+Allow: /data-deletion
+Allow: /static/ai-writer-icon.png
+Disallow: /api/
+Disallow: /research
+Disallow: /auth/
+Disallow: /go/

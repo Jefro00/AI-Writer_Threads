@@ -1,0 +1,31 @@
+[
+  {
+    "text": "We shipped a small AI agent that cleans up Solana dev workflows. Started with the boring problem everyone ignores. Try it free — link in bio.",
+    "author": "buildinpublic_dev",
+    "language": "en",
+    "niche": "AI / SaaS",
+    "product": "Solana DevOps Agent",
+    "mechanic": "Building in Public",
+    "published_at": "2026-11-10T09:00:00Z",
+    "metrics": { "views": 12400, "likes": 630, "replies": 84, "reposts": 41 }
+  },
+  {
+    "text": "Большинство людей думают, что DeFi сложный. На самом деле сложный только интерфейс. Мы сделали простой инструмент и выложили бесплатно. Посмотри в профиле.",
+    "author": "defi_researcher",
+    "language": "ru",
+    "niche": "Crypto / Web3",
+    "product": "DeFi Lens",
+    "mechanic": "Pain Point",
+    "published_at": "2026-11-11T12:30:00Z",
+    "metrics": { "views": 8300, "likes": 410, "replies": 62, "reposts": 28 }
+  },
+  {
+    "text": "3 вещи, которые я понял за 2 года indie hacking: 1) аудитория важнее продукта, 2) бесплатный инструмент продаёт лучше рекламы, 3) отвечай на каждый комментарий.",
+    "author": "indie_founder",
+    "language": "ru",
+    "niche": "Business / Startups",
+    "mechanic": "Social Proof",
+    "published_at": "2026-11-12T18:15:00Z",
+    "metrics": { "views": 21000, "likes": 1400, "replies": 190, "reposts": 110 }
+  }
+]

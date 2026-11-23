@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JefroCrypto · Research</title><link rel="stylesheet" href="/static/research.css"></head>
+<body><main class="wrap">
+<div class="top"><div><h1>JefroCrypto / Research</h1><div class="muted">Исследование контента, воронок и органического роста · Threads</div></div>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><a class="back" href="/">← Content Studio</a><span class="pill" id="health">…</span></div></div>
+
+<div class="tabs" id="tabs">
+<button class="tab active" data-tab="overview">Overview</button>
+<button class="tab" data-tab="posts">Trending Posts</button>
+<button class="tab" data-tab="authors">Authors</button>
+<button class="tab" data-tab="funnels">Funnels</button>
+<button class="tab" data-tab="products">Products</button>
+<button class="tab" data-tab="insights">AI Insights</button>
+<button class="tab" data-tab="performance">Performance</button>
+<button class="tab" data-tab="reports">Reports</button>
+<button class="tab" data-tab="data">Data & Jobs</button>
+</div>
+
+<section class="panel" id="global-filters"><h2>Глобальные фильтры</h2>
+<div class="row">
+<div><label>Ниша</label><select id="f-niche"><option value="">Все</option><option>AI / SaaS</option><option>Crypto / Web3</option><option>Marketing / Sales</option><option>Business / Startups</option></select></div>
+<div><label>Язык</label><select id="f-language"><option value="">Все</option><option>en</option><option>ru</option><option>es</option><option>de</option><option>fr</option><option>tr</option></select></div>
+<div><label>Период, дней</label><select id="f-days"><option>7</option><option selected>30</option><option>90</option><option>365</option></select></div>
+<div><label>Механика</label><input id="f-mechanic" placeholder="Building in Public"></div>
+</div>
+<div class="actions"><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="f-external" checked style="width:auto"/> Только чужие посты (требуется THREADS_OWN_USERNAME)</label><button class="secondary" onclick="loadAll()">Применить</button></div>
+</section>
+
+<div id="view"></div>
+<footer style="margin-top:20px;font-size:12px;color:#a2b3c9"><a href="/privacy">Политика конфиденциальности</a> · <a href="/terms">Условия</a> · <a href="/data-deletion">Удаление данных</a></footer></main><div id="toast"></div>
+<script src="/static/research.js"></script>
+</body></html>
