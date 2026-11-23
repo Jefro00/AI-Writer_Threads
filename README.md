@@ -1,7 +1,7 @@
 > **Подготовка Meta и Render:** подробная инструкция в [META_SETUP.md](META_SETUP.md).
-> В v0.3.2 добавлены `/privacy`, `/terms`, `/data-deletion`, `/meta`, публичный значок и проверка готовности Meta.
+> В v0.3.3 исправлена авторизация Threads на Render: вход через `/auth/threads/start` с одноразовым `state` и безопасной cookie. В v0.3.2 были добавлены `/privacy`, `/terms`, `/data-deletion`, `/meta`, публичный значок и проверка готовности Meta.
 
-# JefroCrypto Threads Engine v0.3.1 · Growth Studio
+# JefroCrypto Threads Engine v0.3.3 · Growth Studio
 
 Генератор криптопостов с сильными хуками, ручной модерацией, реферальными офферами и прозрачной аналитикой. **Основной язык: русский**. Английский можно выбрать в интерфейсе. Основная реферальная ссылка в новой установке: `https://fomo.family/r/jefrocrypto`.
 
@@ -85,7 +85,7 @@ DEFAULT_POST_LANGUAGE=ru
 - После публикации пост нельзя отредактировать через Writer.
 - Реакции Threads зависят от разрешений токена и Meta API; без прав публикация вернёт ошибку.
 - В ZIP **нет** `.env`, приватных ключей, токенов, `.db`, старых логов, `cloudflared.exe` и `.venv`. Исходный архив содержал секреты, так что **замени старые API-ключи/токены и пароль**, если архив хоть где-то мог быть доступен другим.
-- OAuth: для генерации URL и callback установи `THREADS_APP_ID`, `THREADS_APP_SECRET`, `THREADS_REDIRECT_URI` и **`THREADS_OAUTH_STATE`**, случайную строку от `python -c "import secrets;print(secrets.token_urlsafe(32))"`. Дальше: `python tools/refresh_threads_token.py url`, авторизация, `... exchange "<CODE>"`. Callback не логирует OAuth code и проверяет `state`.
+- OAuth на Render: укажи `THREADS_APP_ID`, `THREADS_APP_SECRET`, `THREADS_REDIRECT_URI` и перейди **из того же браузера** на `https://<твой-домен>/auth/threads/start`. Сервис создаст одноразовый `state`, запишет безопасную временную cookie и перенаправит на Meta. Переменная `THREADS_OAUTH_STATE` больше не нужна для этого сценария; она остаётся только для совместимости со старым ручным запуском `tools/refresh_threads_token.py url`. При возврате скопируй одноразовый `code` и выполни локально `... exchange "<CODE>"`, затем перенеси итоговый `THREADS_ACCESS_TOKEN` в Render Environment. Callback не логирует OAuth code и проверяет `state`.
 - `/static` публично отдаёт только файлы интерфейса без данных; API и сами черновики требуют Basic auth. На публичном хостинге используй HTTPS и надёжный пароль.
 
 ## Render Free (важно для данных)

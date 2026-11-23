@@ -1,4 +1,4 @@
-# AI Writer — подготовка к проверке Meta (v0.3.2)
+# AI Writer — подготовка к проверке Meta (v0.3.3)
 
 **Всё необходимое на стороне кода подготовлено.** Приложение нельзя опубликовать в личном кабинете Meta или Render автоматически без доступа владельца к GitHub, Render и Meta. Адрес сервиса появится только после его создания в Render.
 
@@ -77,34 +77,33 @@ URL должен **буквально совпадать** с переменно
 THREADS_APP_ID=<ID именно Threads из Meta, НЕ общий App ID>
 THREADS_APP_SECRET=<Threads secret, скрыть из Git>
 THREADS_REDIRECT_URI=https://<твой-сервис>.onrender.com/auth/threads/callback
-THREADS_OAUTH_STATE=<случайная_строка_32+_байта>
+THREADS_OAUTH_STATE=  # необязательно; только для старого локального сценария
 THREADS_REQUESTED_SCOPES=threads_basic,threads_content_publish
 THREADS_OWN_USERNAME=web3sergeich
 THREADS_KEYWORD_SEARCH_ENABLED=false
 THREADS_PROFILE_DISCOVERY_ENABLED=false
 ```
 
-Сгенерировать случайный `state` локально:
+**Рекомендуемый способ на Render (v0.3.3):**
 
-```powershell
-py -c "import secrets; print(secrets.token_urlsafe(32))"
-```
-
-Не запрашивай расширенные разрешения в OAuth до одобрения Meta. Старый скрипт пытался запросить *все* Advanced Access scopes сразу. В v0.3.2 по умолчанию запрашиваются только `threads_basic,threads_content_publish`.
-
-Генерация URL для авторизации **локально** (после заполнения `.env` теми же переменными, что и в Render):
-
-```powershell
-py tools/refresh_threads_token.py url
-```
-
-Открой выведенный URL в браузере. После разрешения Meta перенаправит на публичный callback, проверит `state` и покажет `code`. На своём ПК выполни:
+1. Убедись, что `THREADS_APP_ID` — именно Threads App ID, а не общий Meta App ID; также заполнены `THREADS_APP_SECRET` и `THREADS_REDIRECT_URI`.
+2. Meta → Threads API → Valid OAuth Redirect URIs: `https://ai-writer-threads.onrender.com/auth/threads/callback` (или твой действительный домен).
+3. Открой **в том же браузере**, где будешь подтверждать Meta: `https://ai-writer-threads.onrender.com/auth/threads/start` и введи `ADMIN_USERNAME`/`ADMIN_PASSWORD` своего сервиса.
+4. Приложение автоматически создаст уникальный `state` (10 минут), временную Secure/HttpOnly cookie и переадресует на Threads. Вручную открывать `/auth/threads/callback` нельзя.
+5. После согласия Meta переадресует обратно на callback. Он проверит `state` и покажет одноразовый `code`. Не публикуй этот код и не показывай его в скриншотах.
+6. На своём компьютере с теми же `THREADS_APP_ID`, `THREADS_APP_SECRET` и `THREADS_REDIRECT_URI` в локальном `.env` запусти:
 
 ```powershell
 py tools/refresh_threads_token.py exchange "<CODE>"
 ```
 
-Локальный скрипт сохранит токен в **локальный** `.env`. Скопируй **только значение** `THREADS_ACCESS_TOKEN` в Render → Environment. Не загружай токен в Git, не делись им в чатах, никогда не раскрывай Threads App Secret.
+7. Скрипт положит `THREADS_ACCESS_TOKEN` в локальный `.env`. Скопируй **только значение** этой переменной в Render → Environment → Save, deploy. Сам `.env` в GitHub не загружай.
+
+> Если при открытии `/auth/threads/callback` видишь «OAuth state не совпадает», первым делом начни **новую** авторизацию через `/auth/threads/start`. Не открывай callback вручную; при входе из другого браузера или спустя 10 минут cookie не совпадёт. При изменении Render Environment нужно выполнить Save, deploy. В новых версиях `THREADS_OAUTH_STATE` для браузерного пути не требуется.
+
+**Старый вариант через локальный URL (для обратной совместимости):** если используешь команду `py tools/refresh_threads_token.py url`, задай **одно и то же** `THREADS_OAUTH_STATE` локально и в Render; генерируется командой `py -c "import secrets; print(secrets.token_urlsafe(32))"`. Этот вариант не рекомендуется, потому что легко ошибиться при переносе значения.
+
+Не запрашивай расширенные разрешения Threads до одобрения Meta. По умолчанию используются только `threads_basic,threads_content_publish`.
 
 После отдельного App Review и выдачи прав поиска чужих постов обнови `THREADS_REQUESTED_SCOPES`, пройди OAuth снова и выставь `THREADS_KEYWORD_SEARCH_ENABLED=true` только при подтверждённом Advanced Access для `threads_keyword_search`; аналогично `threads_profile_discovery` для мониторинга других аккаунтов. До этого Research не сможет полноценно искать чужие посты.
 

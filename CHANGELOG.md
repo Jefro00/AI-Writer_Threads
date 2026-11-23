@@ -1,3 +1,11 @@
+## v0.3.3 — исправлен OAuth state на Render (24.11.2026)
+
+- Администратор запускает Threads OAuth по `/auth/threads/start`, без ручного совпадения `THREADS_OAUTH_STATE` между ПК и Render.
+- Одноразовый state хранится в защищённой HMAC-подписанной HttpOnly/Secure/SameSite=Lax cookie на 10 минут, без зависимости от временной SQLite или памяти процесса.
+- Callback проверяет state, после успешного использования удаляет cookie; при ошибке объясняет, что нельзя открывать callback напрямую.
+- Старые локальные OAuth URL остаются совместимы с общим `THREADS_OAUTH_STATE`, если нужно.
+- Обновлённая инструкция `META_SETUP.md` и `.env.example`; добавлены интеграционные тесты.
+
 ## v0.3.2 — Meta App Review preparation (24.11.2026)
 
 - Публичные юридические страницы RU+EN: `/privacy`, `/terms`, `/data-deletion`, `/meta`; все без админ-пароля.
