@@ -72,7 +72,7 @@ def _require(name: str) -> str:
     return value
 
 
-def auth_url(redirect_override: str | None = None) -> str:
+def auth_url(redirect_override: str | None = None, state_override: str | None = None) -> str:
     app_id = _require("THREADS_APP_ID")
     redirect = redirect_override or _require("THREADS_REDIRECT_URI")
     if redirect.startswith("http://") and "localhost" not in redirect:
@@ -82,7 +82,7 @@ def auth_url(redirect_override: str | None = None) -> str:
         "redirect_uri": redirect,
         "scope": ",".join(requested_scopes()),
         "response_type": "code",
-        "state": _require("THREADS_OAUTH_STATE"),
+        "state": state_override or _require("THREADS_OAUTH_STATE"),
     }
     return f"{AUTH_URL}?{urlencode(params)}"
 

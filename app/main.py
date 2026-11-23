@@ -10,7 +10,7 @@ import httpx
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from fastapi.responses import JSONResponse
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,7 @@ from app.config import settings, STATIC_DIR
 from app.database import Base, SessionLocal, engine, init_db
 from app.database.models import Post
 from app.security import require_admin
+from app.oauth_state import COOKIE_NAME, COOKIE_MAX_AGE_SECONDS, issue_state_cookie, verify_state_cookie
 
 APP_NAME = settings.APP_NAME
 
@@ -113,17 +114,59 @@ def research_page(_: HTTPBasicCredentials = Depends(require_admin)):
     return FileResponse(STATIC_DIR / "research.html")
 
 
+@app.get("/auth/threads/start", include_in_schema=False)
+def threads_oauth_start(_: HTTPBasicCredentials = Depends(require_admin)):
+    """Start Meta OAuth on Render. No manual state copying is needed."""
+    from tools.refresh_threads_token import auth_url
+
+    state = secrets.token_urlsafe(32)
+    try:
+        cookie = issue_state_cookie(state)
+        target_url = auth_url(state_override=state)
+    except (SystemExit, ValueError) as exc:
+        # Configuration errors contain variable names, never secret values.
+        raise HTTPException(status_code=503, detail=str(exc)) from None
+    response = RedirectResponse(target_url, status_code=302)
+    response.set_cookie(
+        COOKIE_NAME, cookie, max_age=COOKIE_MAX_AGE_SECONDS,
+        httponly=True, secure=True, samesite="lax", path="/auth/threads",
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @app.get("/auth/threads/callback", include_in_schema=False)
 def threads_oauth_callback(request: Request, code: str | None = None, error: str | None = None):
-    """Local OAuth redirect target: shows the code (or the exact Meta error)."""
-    from fastapi.responses import HTMLResponse
+    """OAuth callback: check browser-bound state and show Meta's one-time code."""
     import html as _html
 
     # Never log auth codes, query parameters or OAuth secrets.
     supplied_state = request.query_params.get("state", "")
-    expected_state = os.getenv("THREADS_OAUTH_STATE", "").strip()
-    if not expected_state or not secrets.compare_digest(supplied_state, expected_state):
-        return HTMLResponse("<h2>OAuth state не совпадает</h2>", status_code=400)
+    state_cookie = request.cookies.get(COOKIE_NAME, "")
+    if state_cookie:
+        valid_state = verify_state_cookie(state_cookie, supplied_state)
+    else:
+        # Backward compatible with v0.3.2 local CLI-generated authorization URLs.
+        # New users should always visit /auth/threads/start instead.
+        expected_state = os.getenv("THREADS_OAUTH_STATE", "").strip()
+        valid_state = bool(expected_state and supplied_state and secrets.compare_digest(supplied_state, expected_state))
+
+    if not valid_state:
+        body = (
+            "<h2>OAuth state не совпадает</h2>"
+            "<p>Не открывайте /auth/threads/callback вручную. "
+            "Авторизацию нужно начать в той же вкладке браузера через "
+            "<a style='color:#70b7ff' href='/auth/threads/start'>Подключить Threads</a>. "
+            "Если прошло больше 10 минут, повторите вход. "
+            "Проверьте адрес THREADS_REDIRECT_URI в Render и Meta.</p>"
+        )
+        return HTMLResponse(
+            "<!doctype html><meta charset='utf-8'><body style='font:15px system-ui;"
+            f"background:#0b1020;color:#edf3ff;padding:32px'>{body}</body>",
+            status_code=400,
+            headers={"Cache-Control": "no-store"},
+        )
+
     if error or not code:
         body = (
             "<h2>Авторизация не завершена</h2>"
@@ -131,14 +174,18 @@ def threads_oauth_callback(request: Request, code: str | None = None, error: str
         )
     else:
         body = (
-            "<h2>Код получен</h2><p>Скопируйте его и выполните:</p>"
+            "<h2>Код получен</h2><p>Скопируйте его и выполните на своём ПК:</p>"
             "<pre>python tools/refresh_threads_token.py exchange &quot;&lt;CODE&gt;&quot;</pre>"
             f"<textarea readonly rows='4' style='width:100%'>{_html.escape(code)}</textarea>"
+            "<p>Это одноразовый код. Не отправляйте его в чат и не публикуйте.</p>"
         )
-    return HTMLResponse(
+    response = HTMLResponse(
         "<!doctype html><meta charset='utf-8'><body style='font:15px system-ui;"
-        f"background:#0b1020;color:#edf3ff;padding:32px'>{body}</body>"
+        f"background:#0b1020;color:#edf3ff;padding:32px'>{body}</body>",
+        headers={"Cache-Control": "no-store"},
     )
+    response.delete_cookie(COOKIE_NAME, path="/auth/threads", secure=True, httponly=True, samesite="lax")
+    return response
 
 def serialize(p: Post):
     return {"id": p.id, "text": p.text, "category": p.category,
