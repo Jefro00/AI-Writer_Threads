@@ -14,6 +14,7 @@ from app.research.keyword_search import NICHES
 from app.reports import build_report, posts_to_csv, render_html, render_markdown, render_pdf
 from app.sources import (
     AccountMonitorSource,
+    ApifyThreadsSource,
     ContentLibrarySource,
     ManualImportSource,
     ThreadsApiSource,
@@ -42,6 +43,13 @@ async def run_research(kind: str, params: dict) -> dict:
                 stats[f"threads_{mode}"] = await collect_from_source(
                     db, adapter, {**params, "mode": mode}, job_type=f"threads_{mode}"
                 )
+        if kind in {"apify_search", "apify_profiles"}:
+            enabled, config = _source_enabled(db, "apify_threads", "third_party_api")
+            adapter = ApifyThreadsSource(config=config, enabled=enabled)
+            mode = "profiles" if kind == "apify_profiles" else "search"
+            stats[kind] = await collect_from_source(
+                db, adapter, {**params, "mode": mode}, job_type=kind
+            )
         if kind in {"all", "search"}:
             enabled, config = _source_enabled(db, "threads_api", "api")
             # Always journal a search attempt. When Advanced Access is absent,

@@ -61,8 +61,9 @@ ADMIN = [Depends(require_admin)]
 # Request models
 # ---------------------------------------------------------------------------
 class StartRequest(BaseModel):
-    kind: str = "all"  # all|threads_api|search|content_library|monitor|manual
+    kind: str = "all"  # all|threads_api|search|apify_search|apify_profiles|content_library|monitor|manual
     keywords: list[str] = []
+    handles: list[str] = []
     niche: str | None = None
     languages: list[str] = []
     limit: int = Field(default=25, ge=1, le=200)

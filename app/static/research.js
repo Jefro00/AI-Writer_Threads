@@ -44,9 +44,10 @@ async function renderOverview(f){
   <div class="grid">${stat('Публикаций',c.posts)}${stat('Авторов',c.authors)}${stat('Продуктов',c.products)}${stat('Ссылок',c.links)}${stat('Воронок',c.funnels)}${stat('Инсайтов',c.insights)}${stat('Отчётов',c.reports)}</div>
   <div class="layout" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr))">
     <div class="panel"><h2>Запуск исследования</h2>
-      <div class="row"><div><label>Тип</label><select id="r-kind"><option value="search">Поиск по чужим постам</option><option value="all">Все источники (включая мои посты)</option><option value="monitor">Мониторинг авторов</option><option value="content_library">Content Library</option><option value="manual">Ручные данные</option></select></div>
+      <div class="row"><div><label>Тип</label><select id="r-kind"><option value="apify_search">Поиск чужих постов (Apify)</option><option value="apify_profiles">Посты выбранных авторов (Apify)</option><option value="search">Официальный поиск Meta</option><option value="all">Все источники (включая мои посты)</option><option value="monitor">Мониторинг авторов</option><option value="content_library">Content Library</option><option value="manual">Ручные данные</option></select></div>
       <div><label>Ниша</label><select id="r-niche"><option value="">Все</option><option>AI / SaaS</option><option>Crypto / Web3</option><option>Marketing / Sales</option><option>Business / Startups</option></select></div></div>
       <label>Ключевые слова (через запятую)</label><input id="r-keywords" value="мемкоины, memecoin, крипта, solana, трейдинг" placeholder="мемкоины, solana, трейдинг"/>
+      <label>Аккаунты для Apify (через запятую, при выборе поиска по авторам)</label><input id="r-handles" placeholder="author1, author2"/>
       <label>Языки (через запятую)</label><input id="r-langs" value="ru, en" placeholder="ru, en"/>
       <div class="actions"><button onclick="startResearch()">Запустить в фоне</button><button class="secondary" onclick="runAI()">AI-анализ</button></div>
       <p class="notice"><b>Важно:</b> поиск чужих постов требует Meta App Review (Advanced Access) для <code>threads_keyword_search</code>. Без одобрения Meta вернёт только твои публикации, даже при HTTP 200; исправленная версия отмечает такой сбор как <code>skipped</code>. Для скрытия ранее собранных собственных постов заполни <code>THREADS_OWN_USERNAME</code> в .env. Статус — во вкладке Data &amp; Jobs. Можно вручную импортировать чужие посты из CSV/JSON.</p>
@@ -59,7 +60,8 @@ async function startResearch(){
   const kind=$('r-kind').value;
   const keywords=$('r-keywords').value.split(',').map(s=>s.trim()).filter(Boolean);
   const languages=$('r-langs').value.split(',').map(s=>s.trim()).filter(Boolean);
-  try{const r=await api('/api/research/start',{method:'POST',body:JSON.stringify({kind,niche:$('r-niche').value||null,keywords,languages,limit:25})});toast('Задача создана: '+r.task_id)}catch(e){toast('Ошибка: '+e.message)}
+  const handles=$('r-handles').value.split(',').map(s=>s.trim()).filter(Boolean);
+  try{const r=await api('/api/research/start',{method:'POST',body:JSON.stringify({kind,niche:$('r-niche').value||null,keywords,languages,handles,limit:20})});toast('Задача создана: '+r.task_id)}catch(e){toast('Ошибка: '+e.message)}
 }
 async function runAI(){
   try{const r=await api('/api/research/analyze',{method:'POST',body:JSON.stringify({limit:50})});toast('AI-анализ запущен: '+r.task_id)}catch(e){toast('Ошибка: '+e.message)}
@@ -79,7 +81,7 @@ async function renderPosts(f){
   view().innerHTML=`<div class="panel"><h2>Trending Posts <span class="muted" style="font-size:13px">(${data.total||0})</span></h2>
     <div class="row"><div><label>Сортировка</label><select id="p-sort" onchange="renderPosts(filters())"><option value="created_at">Дата</option><option value="published_at">Публикация</option></select></div>
     <div><label>Мин. просмотры</label><input id="p-min" type="number" placeholder="0"/></div></div>
-    ${cards||empty('Пока нет чужих публикаций. Проверь доступ Meta к публичному поиску или импортируй посты через Data & Jobs.')}</div>`;
+    ${cards||empty('Пока нет чужих публикаций. Запусти поиск Apify или импортируй посты через Data & Jobs.')}</div>`;
 }
 async function showPost(id){
   const p=await api('/api/research/posts/'+id);

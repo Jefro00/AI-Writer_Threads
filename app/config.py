@@ -36,7 +36,7 @@ class Settings:
     """
 
     APP_NAME = "JefroCrypto Threads Engine"
-    APP_VERSION = "0.4.0"
+    APP_VERSION = "0.4.1"
 
     @property
     def database_url(self) -> str:
@@ -83,6 +83,17 @@ class Settings:
         return os.getenv("THREADS_API_BASE", "https://graph.threads.net/v1.0")
 
     @property
+    def apify_token(self) -> str:
+        return os.getenv("APIFY_TOKEN", "").strip()
+
+    @property
+    def apify_max_items(self) -> int:
+        try:
+            return max(1, min(50, int(os.getenv("APIFY_MAX_ITEMS", "20"))))
+        except ValueError:
+            return 20
+
+    @property
     def content_library_token(self) -> str:
         return os.getenv("META_CONTENT_LIBRARY_TOKEN", "").strip()
 
@@ -117,7 +128,7 @@ class Settings:
 
     @property
     def research_enabled_sources(self) -> set[str]:
-        raw = os.getenv("RESEARCH_ENABLED_SOURCES", "manual,threads_api,content_library,account_monitor")
+        raw = os.getenv("RESEARCH_ENABLED_SOURCES", "manual,threads_api,content_library,account_monitor,apify_threads")
         return {p.strip().lower() for p in raw.split(",") if p.strip()}
 
     @property
