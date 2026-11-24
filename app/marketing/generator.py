@@ -71,7 +71,7 @@ def _finish_text(text: str, *, language: str, promotion_style: str,
 def build_growth_prompt(*, topic: str, category: str, language: str,
                         goal: str, hook_type: str, promotion_style: str,
                         offer: dict | None, link: str | None,
-                        audience: str, count: int, feedback: str = "") -> str:
+                        audience: str, count: int, feedback: str = "", style_guidance: str = "") -> str:
     lang = "Russian" if language.startswith("ru") else "English" if language.startswith("en") else language
     offer_text = "No affiliate offer." if not offer else (
         f"Brand: {offer['name']}. Description: {offer['description']}. "
@@ -92,6 +92,8 @@ Promotion: {promotion_style}. If none: NO brand mention. Soft: natural relevant 
 The first sentence must be specific and compelling; rest of the post must deliver. Avoid generic "А вы знали", "В мире криптовалют", "Друзья".
 Do not copy any example or existing competitor post. Keep EACH full post under 350 characters to leave room for link + disclosure.
 Feedback from actual data (may be empty, only as hypothesis): {feedback or 'No reliable previous results yet.'}
+Style Lab (abstract editorial mechanisms, no competitor text): {style_guidance or 'No extracted patterns yet.'}
+Be human and non-formulaic: vary rhythm, leave space for authentic uncertainty, use spoken Russian without corporate phrases, never fake first-person trades or quotes. Use no more than one rhetorical question per post unless natural. Never recycle source phrasing.
 Return strict valid JSON (no markdown) with exactly this schema:
 {{"hooks":[{{"type":"curiosity","text":"short opening sentence"}}],"variants":[{{"hook_type":"curiosity","text":"full post without URL"}}]}}
 Provide 5 hooks, and {count} fully written post variants with DISTINCT hooks, ready for Threads. No labels or metadata inside posts. No explanations."""
@@ -100,10 +102,11 @@ Provide 5 hooks, and {count} fully written post variants with DISTINCT hooks, re
 async def generate_growth_variants(*, topic: str, category: str, language: str,
                                    goal: str, hook_type: str, promotion_style: str,
                                    offer: dict | None, link: str | None,
-                                   audience: str, count: int, feedback: str = "") -> dict:
+                                   audience: str, count: int, feedback: str = "", style_guidance: str = "") -> dict:
     prompt = build_growth_prompt(topic=topic, category=category, language=language, goal=goal,
                                 hook_type=hook_type, promotion_style=promotion_style,
-                                offer=offer, link=link, audience=audience, count=count, feedback=feedback)
+                                offer=offer, link=link, audience=audience, count=count, feedback=feedback,
+                                style_guidance=style_guidance)
     raw, model = await complete_prompt(prompt, token_multiplier=2, json_mode=True)
     obj = _parse_json(raw)
     hooks = []

@@ -21,6 +21,7 @@ from app.database.session import SessionLocal, get_db
 from app.marketing.generator import generate_growth_variants
 from app.marketing.hooks import GOALS, HOOK_TYPES, PROMO_STYLES
 from app.marketing.learning import growth_insights, prompt_feedback
+from app.marketing.style_lab import rebuild_patterns, rank_patterns, style_guidance
 from app.security import require_admin
 
 router = APIRouter(prefix="/api/growth", tags=["growth"], dependencies=[Depends(require_admin)])
@@ -70,6 +71,9 @@ class GrowthRequest(BaseModel):
     offer_slug: str | None = "fomo"
     audience: str = Field(default="Криптоэнтузиасты, в том числе новички", max_length=500)
     variants: int = Field(default=3, ge=1, le=5)
+    use_style_lab: bool = True
+    writing_style: str = Field(default="mixed", max_length=50)
+    style_intensity: int = Field(default=65, ge=0, le=100)
 
     @field_validator("goal")
     @classmethod
@@ -169,6 +173,15 @@ async def generate(req: GrowthRequest):
         offer_slug = offer.slug if offer else None
         offer_info = _offer(offer) if offer else None
         feedback = prompt_feedback(growth_insights(db))
+        selected_patterns = []
+        guidance = ""
+        if req.use_style_lab:
+            # Idempotent: newly collected Research posts immediately enrich Style Lab.
+            rebuild_patterns(db, limit=300)
+            selected_patterns = rank_patterns(db, topic=req.topic, language=req.language,
+                                              style=req.writing_style, limit=5)
+            guidance = style_guidance(selected_patterns, intensity=req.style_intensity)
+            db.commit()
         campaign = WriterCampaign(topic=req.topic, goal=req.goal, language=req.language,
                                   offer_id=offer_id, hook_type=req.hook_type,
                                   promotion_style=req.promotion_style)
@@ -181,7 +194,7 @@ async def generate(req: GrowthRequest):
             topic=req.topic, category=req.category, language=req.language,
             goal=req.goal, hook_type=req.hook_type, promotion_style=req.promotion_style,
             offer=offer_info, link=link, audience=req.audience,
-            count=req.variants, feedback=feedback,
+            count=req.variants, feedback=feedback, style_guidance=guidance,
         )
         with SessionLocal() as db:
             campaign = db.get(WriterCampaign, campaign_id)
@@ -207,7 +220,8 @@ async def generate(req: GrowthRequest):
             db.commit()
         return {"campaign_id": campaign_id, "hooks": output["hooks"],
                 "posts": results, "tracking_enabled": bool(settings.public_base_url),
-                "editorial_score_note": "Эвристическая оценка, не прогноз кликов."}
+                "editorial_score_note": "Эвристическая оценка, не прогноз кликов.",
+                "style_sources": [{"id": p["source_post_id"], "author": p["author"], "hook_type": p["hook_type"]} for p in selected_patterns]}
     except Exception:
         # Never leave failed AI generations as misleading empty A/B campaigns.
         with SessionLocal() as db:

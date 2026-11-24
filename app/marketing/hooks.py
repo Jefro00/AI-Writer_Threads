@@ -6,7 +6,7 @@ import re
 HOOK_TYPES = {"auto", "contrarian", "curiosity", "pain_point", "comparison", "debate", "story"}
 GOALS = {"reach", "discussion", "clicks", "signup"}
 PROMO_STYLES = {"none", "soft", "direct"}
-PROMPT_VERSION = "growth-v1"
+PROMPT_VERSION = "growth-v2-style"
 MAX_CHARS = 500  # Threads text-only post limit, checked again before publishing.
 
 

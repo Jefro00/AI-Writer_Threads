@@ -86,7 +86,7 @@ class WriterCampaign(Base):
     offer_id: Mapped[int | None] = mapped_column(ForeignKey("affiliate_offers.id"), nullable=True)
     hook_type: Mapped[str] = mapped_column(String(40), default="auto")
     promotion_style: Mapped[str] = mapped_column(String(30), default="soft")
-    prompt_version: Mapped[str] = mapped_column(String(40), default="growth-v1")
+    prompt_version: Mapped[str] = mapped_column(String(40), default="growth-v2-style")
     hooks_json: Mapped[list] = mapped_column(JSON, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
@@ -493,4 +493,23 @@ class WriterBrief(Base):
     cta: Mapped[str | None] = mapped_column(String(300), nullable=True)
     style_limits: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), default="draft")
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+
+
+class StylePattern(Base):
+    """Derived reusable mechanics, linked to original research provenance."""
+    __tablename__ = "style_patterns"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    source_post_id: Mapped[int] = mapped_column(ForeignKey("research_posts.id"), nullable=False, unique=True)
+    source_author: Mapped[str] = mapped_column(String(150), nullable=False)
+    language: Mapped[str] = mapped_column(String(20), default="ru")
+    hook_type: Mapped[str] = mapped_column(String(40), default="curiosity")
+    tone: Mapped[str] = mapped_column(String(80), default="разговорный")
+    structure: Mapped[str] = mapped_column(Text, nullable=False)
+    emotion: Mapped[str] = mapped_column(String(80), default="любопытство")
+    tags_json: Mapped[list] = mapped_column(JSON, default=list)
+    topic_tags_json: Mapped[list] = mapped_column(JSON, default=list)
+    observed_views: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    observed_engagement: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)

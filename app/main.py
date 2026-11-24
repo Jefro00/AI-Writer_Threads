@@ -284,5 +284,7 @@ from app.api import research_router
 app.include_router(research_router)
 from app.api.growth import router as growth_router, redirect_router
 app.include_router(growth_router)
+from app.api.style_lab import router as style_lab_router
+app.include_router(style_lab_router)
 app.include_router(redirect_router)
 

@@ -36,7 +36,7 @@ class Settings:
     """
 
     APP_NAME = "JefroCrypto Threads Engine"
-    APP_VERSION = "0.3.3"
+    APP_VERSION = "0.4.0"
 
     @property
     def database_url(self) -> str:
